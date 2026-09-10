@@ -11,9 +11,10 @@ Yolo11Face::Yolo11Face(const std::string& model_path, int input_size,
     options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
 #ifdef USE_COREML
-    uint32_t coreml_flags = 0;
-    // coreml_flags |= COREML_FLAG_ONLY_ENABLE_DEVICE_WITH_ANE;
-    Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CoreML(options_, coreml_flags));
+    std::unordered_map<std::string, std::string> provider_options;
+    // Optional: provider_options["ModelFormat"] = "MLProgram";
+    // Optional: provider_options["MLComputeUnits"] = "ALL";   // or "CPUAndNeuralEngine"
+    options_.AppendExecutionProvider("CoreML", provider_options);
     std::cout << "[Yolo11Face] CoreML EP enabled\n";
 #endif
 

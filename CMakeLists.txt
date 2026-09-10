@@ -12,8 +12,7 @@ set(ONNXRUNTIME_ROOT "$ENV{HOME}/onnxruntime-osx-arm64-1.22.0" CACHE PATH "")
 include_directories(${ONNXRUNTIME_ROOT}/include)
 link_directories(${ONNXRUNTIME_ROOT}/lib)
 
-include_directories(${CMAKE_SOURCE_DIR}/third_party)
-include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 add_executable(face_rec
     src/main.cpp

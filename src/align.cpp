@@ -1,5 +1,6 @@
 // align.cpp
 #include "align.hpp"
+#include <opencv2/calib3d.hpp>
 
 static const std::array<cv::Point2f, 5> ARCFACE_DST = {{
     {38.2946f, 51.6963f},

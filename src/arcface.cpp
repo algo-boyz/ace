@@ -9,8 +9,8 @@ ArcFace::ArcFace(const std::string& model_path)
     options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
 #ifdef USE_COREML
-    uint32_t coreml_flags = 0;
-    Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CoreML(options_, coreml_flags));
+    std::unordered_map<std::string, std::string> provider_options;
+    options_.AppendExecutionProvider("CoreML", provider_options);
     std::cout << "[ArcFace] CoreML EP enabled\n";
 #endif
 
@@ -30,16 +30,15 @@ std::vector<float> ArcFace::embed(const cv::Mat& aligned) {
     // BGR → RGB, normalize to [-1, 1]
     cv::Mat rgb;
     cv::cvtColor(aligned, rgb, cv::COLOR_BGR2RGB);
-    rgb.convertTo(rgb, CV_32F, 1.0/128.0, -127.5/128.0);
+    rgb.convertTo(rgb, CV_32F, 1.0/128.0, -127.5/128.0);   // now HWC float
 
-    // HWC → CHW
-    std::vector<float> input(3 * 112 * 112);
-    std::vector<cv::Mat> channels(3);
-    cv::split(rgb, channels);
-    for (int c = 0; c < 3; ++c)
-        std::memcpy(input.data() + c * 112 * 112, channels[c].data, 112 * 112 * sizeof(float));
+    // Keep HWC layout (no channel split)
+    std::vector<float> input(112 * 112 * 3);
+    std::memcpy(input.data(), rgb.data, input.size() * sizeof(float));
 
-    std::array<int64_t, 4> shape{1, 3, 112, 112};
+    // NHWC shape that the model expects
+    std::array<int64_t, 4> shape{1, 112, 112, 3};
+
     Ort::MemoryInfo mem = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
     Ort::Value tensor = Ort::Value::CreateTensor<float>(
         mem, input.data(), input.size(), shape.data(), shape.size());
